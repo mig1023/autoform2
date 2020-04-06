@@ -1,0 +1,3 @@
+% layout 'default';
+% title 'autoform';
+<h2><%= $msg %></h2>
