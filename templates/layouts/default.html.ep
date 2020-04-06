@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
-  <head><title><%= title %></title></head>
-  <body><%= content %></body>
+	<head>
+		<title><%= title %></title>
+		<script src="https://unpkg.com/vue"></script>
+	</head>
+	<body><%= content %></body>
 </html>
