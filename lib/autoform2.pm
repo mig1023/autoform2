@@ -12,6 +12,8 @@ sub startup {
   my $r = $self->routes;
 
   $r->get('/')->to('autoform#index');
+  
+  $r->get('/dummy')->to('autoform#dummy');
 }
 
 1;
