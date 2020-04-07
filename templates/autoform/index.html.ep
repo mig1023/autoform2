@@ -1,29 +1,49 @@
 % layout 'default';
 % title 'autoform';
-<div id='app'>
-	<div class="inputbox">
-		<b>input name:</b><br>
-		<input v-model="appdata.name"/>
-	</div>
-	<div class="inputbox">
-		<b>input surname:</b><br>
-		<input v-model="appdata.surname"/>
-	</div>
-	<div class="inputbox">
-		<u>verify</u><br>
-		name: {{ appdata.name }}<br>
-		surname: {{ appdata.surname }}
-	</div>
+
+<div id="app">
+	<ul class="inputtable">
+		<li v-for="(input, index) in tmpElement" class="inputbox">
+			<input type="text" v-model="input.val"> -> {{ input.name }} 
+		</li>
+	</ul>
+	
+	<hr>
+	
+	<u>verify</u><br>
+	<ul style="list-style: none;">
+		<li v-for="(elem, index) in tmpElement">
+			name {{ index }}, {{ elem.name }}: {{ elem.val }}<br>
+		</li>
+	</ul>
 </div>
 
 <script>
 	var autoform = new Vue({
 		el: '#app',
 		data: {
-			appdata: {
-				name: "",
-				surname: "",
-			}
+			tmpElement: [
+				{
+					name: "field1",
+					type: "input",
+					val: "",
+				},
+				{
+					name: "field2",
+					type: "input",
+					val: "",
+				},
+				{
+					name: "field3",
+					type: "input",
+					val: "",
+				},
+				{
+					name: "field4",
+					type: "input",
+					val: "",
+				},
+			],
 		}
 	});
 </script>

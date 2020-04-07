@@ -2,6 +2,11 @@ body {
 	padding: 25px;
 }
 
+.inputtable {
+	list-style: none;
+}
+
 .inputbox {
+	display: block;
 	margin-top: 20px;
 }
