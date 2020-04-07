@@ -1,14 +1,29 @@
 % layout 'default';
 % title 'autoform';
-<div id="app">
-	<h2 v-text="helloworld"></h2>
+<div id='app'>
+	<div class="inputbox">
+		<b>input name:</b><br>
+		<input v-model="appdata.name"/>
+	</div>
+	<div class="inputbox">
+		<b>input surname:</b><br>
+		<input v-model="appdata.surname"/>
+	</div>
+	<div class="inputbox">
+		<u>verify</u><br>
+		name: {{ appdata.name }}<br>
+		surname: {{ appdata.surname }}
+	</div>
 </div>
 
 <script>
-	var autoformHelloworld = new Vue({
+	var autoform = new Vue({
 		el: '#app',
 		data: {
-			helloworld: '<%= $msg %>'
+			appdata: {
+				name: "",
+				surname: "",
+			}
 		}
 	});
 </script>

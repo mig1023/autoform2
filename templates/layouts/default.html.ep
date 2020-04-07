@@ -3,6 +3,7 @@
 	<head>
 		<title><%= title %></title>
 		<script src="https://unpkg.com/vue"></script>
+		<link rel="stylesheet" type="text/css" href="autoform.css"/>
 	</head>
 	<body><%= content %></body>
 </html>
