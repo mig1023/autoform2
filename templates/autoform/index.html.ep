@@ -4,7 +4,14 @@
 <div id="app">
 	<ul class="inputtable">
 		<li v-for="(input, index) in tmpElement" class="inputbox">
-			<input type="text" v-model="input.val"> -> {{ input.name }} 
+			
+			<label v-if="input.type == 'input'">{{ input.label }} : </label>
+			<input type="text" v-if="input.type == 'input'" v-model="input.val">
+			
+			<input id="input.name" type="checkbox" v-if="input.type == 'checkbox'" v-model="input.val">
+			<label for="input.name" v-if="input.type == 'checkbox'">{{ input.label }}</label>
+			
+			<label v-if="input.type == 'text'">{{ input.label }}</label>
 		</li>
 	</ul>
 	
@@ -25,23 +32,26 @@
 			tmpElement: [
 				{
 					name: "field1",
+					label: "field 1",
 					type: "input",
 					val: "",
 				},
 				{
 					name: "field2",
-					type: "input",
+					label: "checkbox 1",
+					type: "checkbox",
 					val: "",
 				},
 				{
 					name: "field3",
+					label: "field 2",
 					type: "input",
 					val: "",
 				},
 				{
 					name: "field4",
-					type: "input",
-					val: "",
+					label: "field 3 - simple text",
+					type: "text",
 				},
 			],
 		}
