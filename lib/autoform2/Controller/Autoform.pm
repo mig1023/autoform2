@@ -1,5 +1,7 @@
 package autoform2::Controller::Autoform;
+
 use Mojo::Base 'Mojolicious::Controller';
+use autoform2::Data::AutodataTypeC;
 
 sub new_token {
 
@@ -25,31 +27,7 @@ sub data {
 	
 	my $token = $self->param( "token" );
   
-	my $dummy_data = [
-		{
-			name => "token_field",
-			label => "token: $token",
-			type => "text",
-		},
-		{
-			name => "field1",
-			label => "dummy field 1",
-			type => "input",
-			val => "",
-		},
-		{
-			name => "field2",
-			label => "dummy checkbox 1",
-			type => "checkbox",
-			val => "",
-		},
-		{
-			name => "field3",
-			label => "dummy field 2",
-			type => "input",
-			val => "",
-		},
-	];
+	my $dummy_data = autoform2::Data::AutodataTypeC::dummy_data( $token );
 
 	$self->render( json => $dummy_data );
 }
