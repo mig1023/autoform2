@@ -4,12 +4,13 @@ use Mojo::Base 'Mojolicious::Controller';
 use Data::Dumper;
 
 use autoform2::Data::AutodataTypeC;
+use autoform2::Other::TokenGeneration;
 
 sub new_token {
 
 	my $self = shift;
 	
-	my $new_token = int( rand( 10000 ) );
+	my $new_token = autoform2::Other::TokenGeneration::token_generation();
 	
 	$self->redirect_to( "/token/$new_token" );
 }
