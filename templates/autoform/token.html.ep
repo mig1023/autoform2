@@ -39,7 +39,7 @@
 					}
 				})
 				.then((json) => {
-					this.elements = json
+					this.elements = json;
 				})
 		}
 	});

@@ -1,6 +1,8 @@
 package autoform2::Controller::Autoform;
 
 use Mojo::Base 'Mojolicious::Controller';
+use Data::Dumper;
+
 use autoform2::Data::AutodataTypeC;
 
 sub new_token {
