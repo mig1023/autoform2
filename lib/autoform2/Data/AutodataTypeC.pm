@@ -2,7 +2,9 @@ package autoform2::Data::AutodataTypeC;
 
 use utf8;
 
-sub dummy_data {
+sub dummy_data
+# //////////////////////////////////////////////////
+{
 
 	my $token = shift;
 	

@@ -1,11 +1,18 @@
 package autoform2;
 use Mojo::Base 'Mojolicious';
 
-sub startup {
+use utf8;
+use autoform2::ORM::DB;
+
+sub startup
+# //////////////////////////////////////////////////
+{
 
   my $self = shift;
 
   my $config = $self->plugin('Config');
+  
+  autoform2::ORM::DB::connection( $self );
 
   $self->secrets($config->{secrets});
 
