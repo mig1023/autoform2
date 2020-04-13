@@ -4,35 +4,34 @@ use utf8;
 use DBI;
 use Data::Dumper;
 
+our $dbh = undef;
+
 sub connection
 # //////////////////////////////////////////////////
 {
-	my $self = shift;
+	return DBI->connect("dbi:mysql:dbname=vcs", "remoteuser", "userremote") or die;
+}
 
-	my $db = DBI->connect("dbi:mysql:dbname=vcs", "remoteuser", "userremote") or die;
+sub query
+# //////////////////////////////////////////////////
+{
+	$dbh = connection() unless defined( $dbh ) and $dbh->ping;
+	
+	my $type = shift;
 
-	$self->helper(db => sub { return $db });
-	
-	$self->helper(query => sub {
-			
-			my $self = shift;
-			my $type = shift;
-	
-			if ( $type eq "selall" ) {
-				
-				return $db->selectall_arrayref( shift, {Slice => {}}, @_ );
-			}
-			elsif ( $type eq "sel1" ) {
-				
-				my @result = $db->selectrow_arrayref( shift, {}, @_ );
-				
-				return $result[0][0];
-			}
-			else {
-				return $db->do( shift, {}, @_ );
-			}
-		}
-	);
+	if ( $type eq "selall" ) {
+		
+		return $dbh->selectall_arrayref( shift, {Slice => {}}, @_ );
+	}
+	elsif ( $type eq "sel1" ) {
+		
+		my @result = $dbh->selectrow_arrayref( shift, {}, @_ );
+		
+		return ( wantarray ? @result : $result[0][0] );
+	}
+	else {
+		return $dbh->do( shift, {}, @_ );
+	}
 }
 
 1;
