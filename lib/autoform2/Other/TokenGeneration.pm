@@ -20,9 +20,9 @@ sub token_generation
 
 	my @alph = split( //, '0123456789abcdefghigklmnopqrstuvwxyz' );
 	
-	my $token = 't';
+	my $token = undef;
 	
-	$token .= $alph[ int( rand( 36 ) ) ] for ( 1..63 );
+	$token .= $alph[ int( rand( 36 ) ) ] for ( 1..64 );
 
 	substr( $token, 10, length( $appidcode ) ) = $appidcode;
 

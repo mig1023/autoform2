@@ -23,7 +23,7 @@ sub startup
 
 	$r->get( '/' )->to( 'autoform#new_token' );
   
-	$r->get( '/token/:token' )->to( 'autoform#token' );
+	$r->get( '/t/:token' )->to( 'autoform#t' );
   
 	$r->get( '/data/:token' )->to( 'autoform#data' );
 }
