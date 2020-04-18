@@ -2,11 +2,9 @@ package autoform2::Controller::Autoform;
 
 use utf8;
 use Mojo::Base 'Mojolicious::Controller';
-use Data::Dumper;
 
 use autoform2::Data::AutodataTypeC;
 use autoform2::Other::TokenGeneration;
-
 
 sub new_token
 # //////////////////////////////////////////////////
@@ -35,9 +33,7 @@ sub data
 	
 	my $token = $self->param( "token" );
   
-	my $dummy_data = autoform2::Data::AutodataTypeC::dummy_data( $token );
-
-	$self->render( json => $dummy_data );
+	$self->render( json => autoform2::Data::AutodataTypeC::dummy_data() );
 }
 
 1;
