@@ -6,21 +6,18 @@ sub token_generation
 # //////////////////////////////////////////////////
 {
 	my $self = shift;
-	
+
 	my ( $token_existing, $token_existed_before, $token ) = ( 1, 0, 't' );
+
+	$self->db->query( "LOCK TABLES AutoToken WRITE, AutoToken_expired READ" );
 	
-	autoform2::ORM::DB::query( 'do', "LOCK TABLES AutoToken WRITE, AutoToken_expired READ" );
-	
-	autoform2::ORM::DB::query( 'do', "
+	my $appid = $self->db->query( "
 		INSERT INTO AutoToken (
 		AutoAppID, AutoAppDataID, AutoSchengenAppDataID, Step, LastError, Finished, Draft, StartDate, LastIP) 
-		VALUES (0, 0, 0, ?, '', 0, 0, now(), ?)", 1, 1
-	);
-	
-	my $appid = autoform2::ORM::DB::query( 'sel1', "SELECT last_insert_id()" ) || 0;
-	
-	my @appid = autoform2::ORM::DB::query( 'sel1', "SELECT last_insert_id()" ) || ();
-	
+		VALUES (0, 0, 0, ?, '', 0, 0, now(), ?)",
+		1, 1
+	)->last_insert_id;
+
 	my $appidcode = "-$appid-";
 
 	my @alph = split( //, '0123456789abcdefghigklmnopqrstuvwxyz' );
@@ -32,22 +29,22 @@ sub token_generation
 	
 		substr( $token, 10, length( $appidcode ) ) = $appidcode;
 			
-		$token_existing = autoform2::ORM::DB::query( 'sel1', "
+		$token_existing = $self->db->query( "
 			SELECT ID FROM AutoToken WHERE Token = ?", $token
-		) || 0;
+		)->{ ID } || 0;
 		
-		$token_existed_before = autoform2::ORM::DB::query( 'sel1', "
+		$token_existed_before = $self->db->query( "
 			SELECT ID FROM AutoToken_expired WHERE Token = ?", $token
-		) || 0;
-				
+		)->{ ID } || 0;
+
 	} while ( $token_existing || $token_existed_before );
-	
-	autoform2::ORM::DB::query( 'query', "
+
+	$self->db->query( "
 		UPDATE AutoToken SET Token = ? WHERE ID = ?", $token, $appid
 	);
 
-	autoform2::ORM::DB::query( 'query', "UNLOCK TABLES");	
-	
+	$self->db->query( "UNLOCK TABLES");	
+
 	return $token;
 }
 

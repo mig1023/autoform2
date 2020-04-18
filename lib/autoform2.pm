@@ -1,14 +1,23 @@
 package autoform2;
 use Mojo::Base 'Mojolicious';
+use Mojo::mysql;
 
 use utf8;
-use autoform2::ORM::DB;
+
+
 
 sub startup
 # //////////////////////////////////////////////////
 {
 	my $self = shift;
-  
+	
+	$self->helper(
+		db => sub {
+			my $c = shift;
+			return Mojo::mysql->strict_mode('mysql://remoteuser:userremote@127.0.0.1/vcs')->db;
+		}
+	);
+	
 	my $config = $self->plugin('Config');
 
 	$self->secrets($config->{secrets});
