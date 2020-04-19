@@ -1,6 +1,10 @@
 package autoform2::Data::AutodataTypeC;
 
 use utf8;
+use Exporter;
+
+@ISA = qw( Exporter );
+our @EXPORT = qw( dummy_data );
 
 sub dummy_data
 # //////////////////////////////////////////////////

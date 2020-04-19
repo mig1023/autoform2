@@ -11,7 +11,7 @@ sub new_token
 {
 	my $self = shift;
 	
-	my $new_token = autoform2::Other::TokenGeneration::token_generation( $self );
+	my $new_token = token_generation( $self );
 	
 	$self->redirect_to( "/t/$new_token" );
 }
@@ -33,7 +33,7 @@ sub data
 	
 	my $token = $self->param( "t" );
   
-	$self->render( json => autoform2::Data::AutodataTypeC::dummy_data() );
+	$self->render( json => dummy_data() );
 }
 
 1;

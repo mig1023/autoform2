@@ -1,7 +1,11 @@
 package autoform2::Other::TokenGeneration;
 
 use utf8;
-use Math::Random::Secure qw( irand ); 
+use Exporter;
+use Math::Random::Secure qw( irand );
+
+@ISA = qw( Exporter );
+our @EXPORT = qw( token_generation );
 
 sub token_generation
 # //////////////////////////////////////////////////
