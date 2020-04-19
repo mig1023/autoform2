@@ -14,7 +14,7 @@ sub token_generation
 		INSERT INTO AutoToken (
 		AutoAppID, AutoAppDataID, AutoSchengenAppDataID, Step, LastError, Finished, Draft, StartDate, LastIP) 
 		VALUES (0, 0, 0, ?, '', 0, 0, now(), ?)",
-		1, 1
+		1, $self->tx->remote_address
 	)->last_insert_id;
 
 	my $appidcode = "-$appid-";
