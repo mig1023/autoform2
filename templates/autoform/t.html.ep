@@ -14,13 +14,15 @@
 			<label v-if="input.type == 'text'">{{ input.label }}</label>
 		</li>
 	</ul>
+	<input type="button" value="&#9665; Back">
+	&nbsp;
+	<input type="button" value="Next &#9655;">
 	
-	<hr>
-	
-	<u>verify</u><br>
+	<br><br><hr>
+	<u>tmp_debug</u><br>
 	<ul style="list-style: none;">
 		<li v-for="(elem, index) in elements">
-			name {{ index }}, {{ elem.name }}: {{ elem.val }}<br>
+			name {{ index }}, {{ elem.name }}: {{ elem.val }} ( {{ elem.check }} )<br>
 		</li>
 	</ul>
 </div>
