@@ -1,6 +1,7 @@
 package autoform2::Other::TokenGeneration;
 
 use utf8;
+use Math::Random::Secure qw( irand ); 
 
 sub token_generation
 # //////////////////////////////////////////////////
@@ -22,7 +23,7 @@ sub token_generation
 	
 	my $token = undef;
 	
-	$token .= $alph[ int( rand( 36 ) ) ] for ( 1..64 );
+	$token .= $alph[ int( irand( 36 ) ) ] for ( 1..64 );
 
 	substr( $token, 10, length( $appidcode ) ) = $appidcode;
 
