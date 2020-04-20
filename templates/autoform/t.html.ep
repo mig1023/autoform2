@@ -50,8 +50,8 @@
 				}
 			},
 			next: function() {
-				// check
-				action.change( this, '<%= $token %>', 'next' );
+				if ( validation.all_ok( this ) )
+					action.change( this, '<%= $token %>', 'next' );
 			},
 		}
 	});
