@@ -2,11 +2,11 @@
 % title 'autoform';
 
 <div id="app">
-	<ul class="inputtable">
-		<li v-for="(input, index) in elements" class="inputbox">
+	<ul class="inputTable">
+		<li v-for="(input, index) in elements" class="inputBox">
 			
 			<label v-if="input.type == 'input'">{{ input.label }} : </label>
-			<input type="text" v-if="input.type == 'input'" v-model="input.val">
+			<input type="text" v-if="input.type == 'input'" v-model="input.val" v-on:change="check">
 			
 			<input v-if="input.type == 'checkbox'" id="input.name" type="checkbox" v-model="input.val">
 			<label for="input.name" v-if="input.type == 'checkbox'">{{ input.label }}</label>
@@ -14,9 +14,9 @@
 			<label v-if="input.type == 'text'">{{ input.label }}</label>
 		</li>
 	</ul>
-	<input type="button" value="&#9665; Back">
+	<input type="button" value="&#9665;&#x2007;Back">
 	&nbsp;
-	<input type="button" value="Next &#9655;">
+	<input type="button" value="Next&#x2007;&#9655;">
 	
 	<br><br><hr>
 	<u>tmp_debug</u><br>
@@ -27,7 +27,9 @@
 	</ul>
 </div>
 
-<script>
+<script type="module">
+	import validation from '/js/validation.js';
+
 	var autoform = new Vue({
 		el: '#app',
 		data: {
@@ -43,6 +45,17 @@
 				.then((json) => {
 					this.elements = json;
 				})
+		},
+		methods: {
+			check: function(e) {
+				let input = event.target;
+				console.log(validation.test_ok());
+				if (input.value != "") {
+					input.classList.add("mod-success");
+				} else {
+					input.classList.remove("mod-success");
+				}
+			}
 		}
 	});
 </script>

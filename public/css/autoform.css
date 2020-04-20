@@ -1,0 +1,21 @@
+body {
+	padding: 25px;
+}
+
+.inputTable {
+	list-style: none;
+	padding: 0;
+}
+
+.inputBox {
+	display: block;
+	margin-top: 20px;
+}
+
+.fieldValide {
+	background-color: #D5F5E3;
+}
+
+.fieldFail {
+	background-color: #F5B7B1;
+}
