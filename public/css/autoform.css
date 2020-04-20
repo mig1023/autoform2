@@ -12,10 +12,10 @@ body {
 	margin-top: 20px;
 }
 
-.fieldValide {
-	background-color: #D5F5E3;
+.field {
+	border: 1px solid gray;
 }
 
 .fieldFail {
-	background-color: #F5B7B1;
+	border: 1px solid red;
 }

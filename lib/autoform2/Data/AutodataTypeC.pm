@@ -63,6 +63,44 @@ sub dummy_data
 			special => 'datepicker, mask',
 			minimal_date => 's_date',
 		},
+		{
+			type => 'input',
+			name => 'rulname',
+			label => 'Фамилия',
+			comment => 'Введите фамилию на русском языке так, как она указана во внутреннем паспорте',
+			example => 'Петров',
+			check => 'zWЁ\s\-',
+			check_logic => [
+				{
+					condition => 'english_only_for_not_rf_citizen',
+					full_error => 'Для граждан РФ фамилию необходимо вводить на русском языке',
+				},
+			],
+			db => {
+				table => 'AppData',
+				name => 'RLName',
+			},
+			format => 'capitalized'
+		},
+		{
+			type => 'input',
+			name => 'rufname',
+			label => 'Имя',
+			comment => 'Введите имя на русском языке так, как оно указано во внутреннем паспорте',
+			example => 'Петр',
+			check => 'zWЁ\s\-',
+			check_logic => [
+				{
+					condition => 'english_only_for_not_rf_citizen',
+					full_error => 'Для граждан РФ имя необходимо вводить на русском языке',
+				},
+			],
+			db => {
+				table => 'AppData',
+				name => 'RFName',
+			},
+			format => 'capitalized'
+		},
 	];
 };
 

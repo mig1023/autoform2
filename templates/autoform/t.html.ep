@@ -6,7 +6,8 @@
 		<li v-for="(input, index) in elements" class="inputBox">
 			
 			<label v-if="input.type == 'input'">{{ input.label }} : </label>
-			<input type="text" v-if="input.type == 'input'" v-model="input.val" v-on:change="check">
+			<input type="text" class="field" v-if="input.type == 'input'" v-model="input.val"
+				v-on:change=check(input.check)>
 			
 			<input v-if="input.type == 'checkbox'" id="input.name" type="checkbox" v-model="input.val">
 			<label for="input.name" v-if="input.type == 'checkbox'">{{ input.label }}</label>
@@ -47,13 +48,12 @@
 				})
 		},
 		methods: {
-			check: function(e) {
-				let input = event.target;
-				console.log(validation.test_ok());
-				if (input.value != "") {
-					input.classList.add("mod-success");
-				} else {
-					input.classList.remove("mod-success");
+			check: function(check) {
+				if (validation.ok(event.target, check)) {
+					event.target.classList.remove("fieldFail");
+				}
+				else {
+					event.target.classList.add("fieldFail");
 				}
 			}
 		}
