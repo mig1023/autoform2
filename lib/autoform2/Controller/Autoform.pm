@@ -31,9 +31,30 @@ sub data
 {
 	my $self = shift;
 	
-	my $token = $self->param( "t" );
+	# my $token = $self->param( "t" );
   
-	$self->render( json => dummy_data() );
+	$self->render( json => dummy_data()->{ 1 } );
 }
+
+sub next
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+	
+	# my $token = $self->param( "t" );
+	
+	$self->render( json => dummy_data()->{ 2 } );
+}
+
+sub prev
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+	
+	# my $token = $self->param( "t" );
+  
+	$self->render( json => dummy_data()->{ 1 } );
+}
+
 
 1;

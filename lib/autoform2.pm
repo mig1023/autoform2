@@ -26,6 +26,10 @@ sub startup
 	$r->get( '/t/:token' )->to( 'autoform#t' );
   
 	$r->get( '/data/:token' )->to( 'autoform#data' );
+	
+	$r->get( '/next/:token' )->to( 'autoform#next' );
+	
+	$r->get( '/prev/:token' )->to( 'autoform#prev' );
 }
 
 1;
