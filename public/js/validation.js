@@ -4,7 +4,7 @@ var validation = {
 		
 		var all_error = '';
 		
-		form.elements.forEach(function(item) {
+		form.elements.forEach( function( item ) {
 			
 			var next_error = error( item.val, item.check );
 			
@@ -57,14 +57,14 @@ function error( value, check ) {
 		if ( /W/.test( check ) ) {
 			regexp += 'A-Za-z';
 		}
-		if ( /®/.test( check ) ) {
-			regexp += '¿-ﬂ®‡-ˇ∏';
+		if ( /–Å/.test( check ) ) {
+			regexp += '–ê-–Ø–Å–∞-—è—ë';
 		}
 		if ( /N/.test( check ) ) {
 			regexp += '0-9';
 		}
 
-		var regexp_add = check.replace( /(z|W|®|N)/g, '' );
+		var regexp_add = check.replace( /(z|W|–Å|N)/g, '' );
 
 		var input_reg = new RegExp( '[^' + regexp + regexp_add + ']' );
 

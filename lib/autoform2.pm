@@ -21,15 +21,15 @@ sub startup
 
 	my $r = $self->routes;
 
-	$r->get( '/' )->to( 'autoform#new_token' );
+	$r->any( '/' )->to( 'autoform#new_token' );
   
-	$r->get( '/t/:token' )->to( 'autoform#t' );
+	$r->any( '/t/:token' )->to( 'autoform#t' );
   
-	$r->get( '/data/:token' )->to( 'autoform#data' );
+	$r->post( '/data/:token' )->to( 'autoform#data' );
 	
-	$r->get( '/next/:token' )->to( 'autoform#next' );
+	$r->post( '/next/:token' )->to( 'autoform#next' );
 	
-	$r->get( '/prev/:token' )->to( 'autoform#prev' );
+	$r->post( '/prev/:token' )->to( 'autoform#prev' );
 }
 
 1;

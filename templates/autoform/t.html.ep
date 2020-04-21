@@ -31,6 +31,7 @@
 <script type="module">
 	import validation from '/js/validation.js';
 	import action from '/js/action.js';
+	import sending from '/js/sending.js';
 
 	var autoform = new Vue({
 		el: '#app',
@@ -51,7 +52,7 @@
 			},
 			next: function() {
 				if ( validation.all_ok( this ) )
-					action.change( this, '<%= $token %>', 'next' );
+					action.change( this, '<%= $token %>', 'next', sending.pack( this ) );
 			},
 		}
 	});
