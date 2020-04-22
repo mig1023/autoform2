@@ -1,8 +1,10 @@
 var sending = {
 
-	pack( form ) {
+	pack( form, direction ) {
 		
-		var data = {};
+		var data = {
+			'direction': direction,
+		};
 		
 		form.elements.forEach( function( item ) {
 			data[ item.name ] = item.val;

@@ -1,6 +1,7 @@
 var action = {
-	change(object, token, direction, data) {
-		fetch( '/' + direction + '/' + token, {
+	change(object, token, data) {
+		
+		fetch( '/data/' + token, {
 			method: 'POST',
 			body: data,
 		})

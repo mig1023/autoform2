@@ -52,7 +52,7 @@
 			},
 			next: function() {
 				if ( validation.all_ok( this ) )
-					action.change( this, '<%= $token %>', 'next', sending.pack( this ) );
+					action.change( this, '<%= $token %>', sending.pack( this, 'next' ) );
 			},
 		}
 	});
