@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( get_names_db_for_save_or_get get_current_table_id check_data_from_db get_content_rules get_content_rules_hash_opt );
+our @EXPORT = qw( get_names_db_for_save_or_get get_current_table_id check_data_from_db get_content_rules get_content_rules_hash_opt init_add_param );
 
 sub get_names_db_for_save_or_get
 # //////////////////////////////////////////////////
@@ -79,7 +79,7 @@ sub get_current_table_id
 	
 	my $request_tables = 'ID, ' . join( ', ', values %$tables_controled_by_AutoToken );
 	
-	my @ids = $self->db->query( "
+	my @ids = $self->db->query("
 		SELECT $request_tables FROM AutoToken WHERE Token = ?", $self->{ token }
 	);
 
@@ -206,6 +206,166 @@ sub get_content_rules_hash_opt
 	return VCS::Site::autodata_type_c_spb::get_content_rules_hash() if VCS::Site::autodata::this_is_spb_center( $center );
 
 	return VCS::Site::autodata_type_c::get_content_rules_hash();
+}
+
+sub init_add_param
+# //////////////////////////////////////////////////
+{
+	my ( $self, $content_rules, $keys ) = @_;
+	
+	my $info_from_db = undef;
+	my $ussr_first = 0;
+	my $primetime_price = 0;
+	
+	if ( $keys->{ param } ) {
+	
+		$info_from_db = $self->cached( 'autoform_addparam' );
+		
+		if ( !$info_from_db ) {
+		
+			my $info_from_sql = {
+				'[centers_from_db]' => 'SELECT ID, BName FROM Branches WHERE Display = 1 AND isDeleted = 0',
+				'[visas_from_db]' => 'SELECT ID, VName FROM VisaTypes WHERE OnSite = 1',
+				'[brh_countries]' => 'SELECT ID, EnglishName, Ex, MemberOfEU, Schengen FROM Countries',
+				'[schengen_provincies]' => 'SELECT ID, Name FROM SchengenProvinces',
+			};
+			
+			for ( keys %$info_from_sql ) {
+			
+				$info_from_db->{ $_ } = $self->query( 'selall', __LINE__, $info_from_sql->{ $_ } );
+			}
+
+			for ( @{ $info_from_db->{ '[brh_countries]' } } ) {
+			
+				push( @{ $info_from_db->{ '[prevcitizenship_countries]' } }, $_ );
+				
+				push( @{ $info_from_db->{ '[citizenship_countries]' } }, $_ ) if $_->[ 2 ] == 0;
+				
+				push( @{ $info_from_db->{ '[eu_countries]' } }, $_ ) if $_->[ 3 ] == 1;
+				
+				push( @{ $info_from_db->{ '[schengen_countries]' } }, $_ ) if $_->[ 4 ] == 1;
+			}
+
+			$self->cached( 'autoform_addparam', $info_from_db );
+		}
+		
+		$_->[ 1 ] = $self->get_lang_if_exist( $_->[ 1 ], 'mobname', $_->[ 0 ] )
+			for @{ $info_from_db->{ '[centers_from_db]' } };
+	
+		$_->[ 1 ] = $self->get_lang_if_exist( $_->[ 1 ], 'visaname', $_->[ 0 ] )
+			for @{ $info_from_db->{ '[visas_from_db]' } };
+	}
+	
+	if ( $self->{ token } and $keys->{ persons_in_page } ) {
+
+		my $app_person_in_app = $self->query( 'selallkeys', __LINE__, "
+			SELECT AutoAppData.ID as ID, CONCAT(RFName, ' ', RLName, ', ', BirthDate) as person,
+			birthdate, CURRENT_DATE() as currentdate
+			FROM AutoToken 
+			JOIN AutoAppData ON AutoToken.AutoAppID = AutoAppData.AppID
+			WHERE AutoToken.Token = ?", $self->{ token }
+		);
+
+		for my $person ( @$app_person_in_app ) {
+		
+			$person->{ person } = $self->date_format( $person->{ person } );
+			
+			next if ( $self->age( $person->{ birthdate }, $person->{ currentdate } ) < 
+					$self->{ autoform }->{ age }->{ age_for_agreements } );
+
+			push ( @{ $info_from_db->{ '[persons_in_app]' } }, [ $person->{ ID }, $person->{ person } ] );
+		};
+			
+		push( @{ $info_from_db->{ '[persons_in_app]' } }, [ -1, $self->lang('на доверенное лицо') ] );
+	}
+	
+	if ( $self->{ token } and $keys->{ ussr_or_rf_first } ) {
+	
+		my $birthdate = $self->query( 'sel1', __LINE__, "
+			SELECT DATEDIFF(AutoAppData.BirthDate, '1991-12-26')
+			FROM AutoAppData
+			JOIN AutoToken ON AutoAppData.ID = AutoToken.AutoAppDataID 
+			WHERE AutoToken.Token = ?", $self->{ token }
+		);
+	
+		$ussr_first = 1 if $birthdate < 0;
+	}
+	
+	if ( $keys->{ primetime_price } ) {
+	
+		$primetime_price = $self->query( 'sel1', __LINE__, "
+			SELECT Price FROM PriceRate
+			JOIN ServicesPriceRates ON PriceRate.ID = PriceRateID
+			WHERE BranchID = 41 AND RDate <= curdate() AND ServicesPriceRates.ServiceID = 2
+			ORDER by PriceRate.ID DESC LIMIT 1"
+		);
+	}
+	
+	if ( $keys->{ primetime_spb_price } ) {
+	
+		$primetime_price = $self->query( 'sel1', __LINE__, "
+			SELECT Price FROM PriceRate
+			JOIN ServicesPriceRates ON PriceRate.ID = PriceRateID
+			WHERE BranchID = 43 AND RDate <= curdate() AND ServicesPriceRates.ServiceID = 3
+			ORDER by PriceRate.ID DESC LIMIT 1"
+		);
+	}
+	
+	if (
+		$keys->{ param }
+		or
+		$keys->{ collect_date }
+		or
+		$keys->{ persons_in_page }
+		or
+		$keys->{ ussr_or_rf_first }
+		or
+		$keys->{ primetime_price }
+		or
+		$keys->{ primetime_spb_price }
+	) {
+	
+		for my $page ( keys %$content_rules ) {
+		
+			next if $content_rules->{ $page } =~ /^\[/;
+			
+			for my $element ( @{ $content_rules->{ $page } } ) {
+
+				if ( ref( $element->{ param } ) ne 'HASH' ) {
+				
+					my $param_array = $info_from_db->{ $element->{ param } };
+					
+					$element->{ param } = {};
+					
+					$element->{ param }->{ $_->[ 0 ] } = $_->[ 1 ] for ( @$param_array );
+				}
+				
+				if ( exists $element->{ check_logic } and $self->{ token } and $keys->{ collect_date } ) {
+				
+					for ( @{ $element->{ check_logic } } ) {
+					
+						$_->{ offset } = $self->get_collect_date()	
+							if $_->{ offset } =~ /\[collect_date_offset\]/;
+					}
+				}
+				
+				if ( $element->{ name } =~ /^(brhcountry|prev_сitizenship)$/ ) {
+				
+					$element->{ first_elements } = '272, 70' if $ussr_first;
+				}
+				
+				if (
+					( $keys->{ primetime_price } or $keys->{ primetime_spb_price } )
+					and
+					$element->{ label } =~ /\[primetime_price\]/
+				) {
+					$element->{ label } =~ s/\[primetime_price\]/$primetime_price/;
+				}
+			}
+		}
+	}
+
+	return $content_rules;
 }
 
 1;

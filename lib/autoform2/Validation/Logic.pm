@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( check_logic );
+our @EXPORT = qw( check_logic check_relation skip_page_by_relation skip_by_condition );
 
 sub check_logic
 # //////////////////////////////////////////////////
@@ -268,6 +268,81 @@ sub check_logic
 				);
 		}
 	}
+}
+
+sub check_relation
+# //////////////////////////////////////////////////
+{
+	my ( $self, $step, $page, $moonwalk ) = @_;
+
+	my $skip_this_page;
+	
+	my $at_least_one_page_skipped = 0;
+	
+	my $current_table_id = $self->get_current_table_id(); 
+	
+	do {
+		$skip_this_page = 0;
+
+		for my $relation ( keys %{ $page->[ 0 ]->{ relation } } ) {
+		
+			$skip_this_page += $self->skip_page_by_relation( $relation, $page->[ 0 ]->{ relation }->{ $relation } );
+		}
+		
+		if ( $skip_this_page ) {
+
+			$at_least_one_page_skipped = 1;
+			
+			$step += ( $moonwalk ? -1 : 1 );
+			
+			$page = $self->get_content_rules( $step, 'full' );
+
+			my $current_table_id = $self->get_current_table_id(); 
+			
+			if ( $step == $self->get_step_by_content( '[app_finish]' ) ) {
+			
+				$self->set_current_app_finished( $current_table_id );
+			}
+		}
+	
+	} while ( $skip_this_page );
+
+	$self->set_step( $step ) if $at_least_one_page_skipped;
+	
+	return ( $step, $page );
+}
+
+sub skip_page_by_relation
+# //////////////////////////////////////////////////
+{
+	my ( $self, $condition, $relation ) = @_;
+	
+	return ( $self->citizenship_check_fail( $relation->{ value } ) ? 1 : 0 ) if $condition =~ /^only_if_citizenship$/;
+	
+	my $current_table_id = $self->get_current_table_id(); 
+	
+	my $value = $self->query( 'sel1', __LINE__, "
+		SELECT $relation->{name} FROM Auto$relation->{table} WHERE ID = ?",
+		$current_table_id->{ 'Auto' . $relation->{table} }
+	);
+
+	return $self->skip_by_condition( $value, $relation->{ value }, $condition ); 
+}
+
+sub skip_by_condition
+# //////////////////////////////////////////////////
+{
+	my ( $self, $value, $relation, $condition ) = @_;
+
+	my %relation = map { $_ => 1 } split( /,\s?/, $relation );
+
+	return 1 if $condition =~ /^only_if_younger(_\d+)?$/ and ( $self->age( $value, localtime->ymd ) >= $relation );
+
+	return 1 if $condition =~ /^only_if_not(_\d+)?$/ and exists $relation{ $value };
+	
+	return 1 if $condition =~ /^only_if(_\d+)?$/ and !exists $relation{ $value };
+	
+	return 0;
 }
 
 1;

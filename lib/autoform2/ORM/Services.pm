@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( get_step_by_id get_id_by_step get_all_visa_categories get_app_visa_and_center get_current_apps mod_last_error_date get_same_info_for_timeslots );
+our @EXPORT = qw( get_step_by_id get_id_by_step get_all_visa_categories get_app_visa_and_center get_current_apps mod_last_error_date get_same_info_for_timeslots get_lang_if_exist get_collect_date create_clear_form citizenship_check_fail );
 
 sub get_step_by_id
 # //////////////////////////////////////////////////
@@ -46,7 +46,7 @@ sub get_all_visa_categories
 
 		$category = {};
 
-		my $all_visas = $self->query( 'selallkeys', __LINE__, "
+		my $all_visas = $self->db->query("
 			SELECT ID, Category FROM VisaTypes"
 		);
 
@@ -71,7 +71,7 @@ sub get_app_visa_and_center
 		
 	if ( !$app_data->{ vtype } or !$app_data->{ center } ) {
 		
-		( $app_data->{ center }, $app_data->{ vtype } ) = $self->query( 'sel1', __LINE__, "
+		( $app_data->{ center }, $app_data->{ vtype } ) = $self->db->query("
 			SELECT CenterID, VType
 			FROM AutoAppointments
 			JOIN AutoToken ON AutoAppointments.ID = AutoToken.AutoAppID
@@ -103,13 +103,13 @@ sub get_current_apps
 {
 	my $self = shift;
 	
-	my $all = $self->query( 'sel1', __LINE__, "
+	my $all = $self->db->query("
 		SELECT COUNT(AutoAppData.ID) FROM AutoToken
 		JOIN AutoAppData ON AutoToken.AutoAppID = AutoAppData.AppID
 		WHERE Token = ?", $self->{ token }
 	);
 	
-	my $max = $self->query( 'sel1', __LINE__, "
+	my $max = $self->db->query("
 		SELECT NCount FROM AutoToken
 		JOIN AutoAppointments ON AutoToken.AutoAppID = AutoAppointments.ID
 		WHERE Token = ?", $self->{ token }
@@ -128,7 +128,7 @@ sub mod_last_error_date
 	
 	$last_error =~ s/[^A-Za-zАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя0-9\s\-\.\,\:\"\(\)№_]/!/g;
 	
-	return $self->query( 'query', __LINE__, "
+	return $self->db->query("
 		UPDATE AutoToken SET LastError = ? WHERE Token = ?", {},
 		$last_error, $self->{ token }
 	);
@@ -142,7 +142,7 @@ sub get_same_info_for_timeslots
 	my $app = {};
 
 	( $app->{ persons }, $app->{ center }, $app->{ fdate }, $app->{ timeslot }, 
-			$app->{ appdate }, $app->{ urgent } ) = $self->query( 'sel1', __LINE__, "
+			$app->{ appdate }, $app->{ urgent } ) = $self->db->query("
 		SELECT count(AutoAppData.ID), CenterID, SDate, TimeslotID, AppDate, Urgent
 		FROM AutoToken 
 		JOIN AutoAppData ON AutoToken.AutoAppID = AutoAppData.AppID
@@ -155,6 +155,95 @@ sub get_same_info_for_timeslots
 	$app->{ fdate } = $self->date_format( $app->{ fdate } );
 
 	return $app;
+}
+
+
+sub get_lang_if_exist
+# //////////////////////////////////////////////////
+{
+	my ( $self, $line, $static_key, $dynamic_key ) = @_;
+	
+	my $lang_version = $self->lang( $static_key . $dynamic_key ) || $line;
+
+	$line = $lang_version unless $lang_version =~ /^$static_key/;
+	
+	return $line;
+}
+
+sub get_collect_date
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+
+	my $collect_dates = $self->cached( 'autoform_collectdates' );
+		
+	if ( !$collect_dates ) {
+	
+		my $collect_dates_array = $self->db->query("
+			SELECT ID, CollectDate, cdSimpl, cdUrgent, cdCatD
+			FROM Branches where isDeleted = 0 and Display = 1"
+		);
+		$collect_dates = {};
+		
+		for my $date ( @$collect_dates_array ) {
+
+			$collect_dates->{ $date->{ ID } }->{ $_ } = $date->{ $_ }
+				for ( 'CollectDate', 'cdSimpl', 'cdUrgent', 'cdCatD' );
+		}
+
+		$self->cached( 'autoform_collectdates', $collect_dates );
+	}
+	
+	my ( $center_id, $category ) = $self->get_app_visa_and_center();
+
+	$collect_dates = $collect_dates->{ $center_id };
+
+	return 0 unless $collect_dates->{ CollectDate };
+	
+	return $collect_dates->{ cdCatD } if $category eq 'D';
+	
+	return ( $collect_dates->{ cdUrgent } ? $collect_dates->{ cdUrgent } : $collect_dates->{ cdSimpl } );
+}
+
+sub create_clear_form
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+	
+	$self->db->query("
+		INSERT INTO AutoAppointments (RDate, Login, Draft) VALUES (now(), ?, 1)", {}, 
+		$self->{ vars }->get_session->{'login'}
+	);
+		
+	my $app_id = $self->db->query("
+		SELECT last_insert_id()"
+	) || 0;
+	
+	$self->db->query("
+		UPDATE AutoToken SET AutoAppID = ?, StartDate = now(), LastIP = ? WHERE Token = ?", {}, 
+		$app_id, $ENV{ HTTP_X_REAL_IP }, $self->{ token }
+	);
+}
+
+sub citizenship_check_fail
+# //////////////////////////////////////////////////
+{
+	my ( $self, $value ) = @_;
+	
+	my %citizenship = map { $_ => 1 } split( /,\s?/, $value );
+
+	my $applicants = $self->query( 'selallkeys', __LINE__, "
+		SELECT Citizenship FROM AutoAppData
+		JOIN AutoToken ON AutoAppData.AppID = AutoToken.AutoAppID
+		WHERE Token = ?", $self->{ token }
+	);
+	
+	for ( @$applicants ) {
+	
+		return 1 if !exists $citizenship{ $_->{ Citizenship } };
+	}
+	
+	return 0;
 }
 
 1;
