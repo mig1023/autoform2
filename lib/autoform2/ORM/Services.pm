@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( get_step_by_id get_id_by_step get_all_visa_categories get_app_visa_and_center get_current_apps mod_last_error_date get_same_info_for_timeslots get_lang_if_exist get_collect_date create_clear_form citizenship_check_fail );
+our @EXPORT = qw( get_step_by_id get_id_by_step get_all_visa_categories get_app_visa_and_center get_current_apps mod_last_error_date get_same_info_for_timeslots get_lang_if_exist get_collect_date create_clear_form citizenship_check_fail get_pcode countries visapurpose_assembler mezzi_assembler );
 
 sub get_step_by_id
 # //////////////////////////////////////////////////
@@ -244,6 +244,125 @@ sub citizenship_check_fail
 	}
 	
 	return 0;
+}
+
+sub get_pcode
+# //////////////////////////////////////////////////
+{
+	my ( $self, $task, $id, $template ) = @_;
+
+	my $request = $self->param( 'name_startsWith' ) || '';
+	my $request_limit = $self->param( 'maxRows' ) || 20;
+	my $callback = $self->param( 'callback' ) || "";
+	my $center = $self->param( 'center' ) || 1;
+	
+	$request =~ s/[^0-9A-Za-zАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя]//g;
+	
+	$_ =~ s/[^0-9]//g for ( $request_limit, $center );
+	
+	$request_limit = 20 if ( $request_limit eq '' ) or ( $request_limit == 0 ) or ( $request_limit > 100 );
+
+	my $finded_pcode = [];
+	
+	if ( $request ne '' ) {
+	
+		my $all_pcode = $self->cached( 'autoform_allpcode' );
+		
+		if ( !$all_pcode ) {
+
+			$all_pcode = $self->query( 'selallkeys', __LINE__, "
+				SELECT DHL_Cities.ID, CName, RName, DHL_Cities.PCode, DHL_Cities.isDefault, DPrice, Branches.ID as Center
+				FROM DHL_Cities 
+				JOIN DHL_Prices ON DHL_Prices.PCode = DHL_Cities.ID
+				JOIN Branches ON DHL_Prices.SenderID = Branches.SenderID
+				WHERE DHL_Cities.isDeleted=0 AND RateID = (
+					SELECT MAX(ID) FROM DHL_Rates WHERE RDate <= curdate()
+				) AND DPrice > 0
+				ORDER BY CName, DHL_Cities.isDefault DESC, DHL_Cities.PCode"
+			);
+			
+			$self->cached( 'autoform_allpcode', $all_pcode );
+		}
+	
+		my $limit = 0;
+
+		for ( @$all_pcode ) {
+			if (
+				( $_->{ Center } == $center ) and (	
+					( ( $request =~ /[^0-9]/ ) and ( ( $_->{ CName } =~ /^$request/ or $_->{ RName } =~ /^$request/ ) ) )
+					or 	
+					( ( $request =~ /^[0-9]+$/ ) and ( $_->{ PCode } =~ /^$request/ ) )
+				)	
+			) {
+				push( @$finded_pcode, $_ );
+				
+				$limit++;
+				
+				last if $limit >= $request_limit;
+			};
+		}
+
+		for my $rk ( @$finded_pcode ) {
+		
+			$rk->{ CName } = $self->{ vars }->get_system->converttext(
+				$rk->{ RName } ne '' ?  $rk->{ RName } : $rk->{ CName } 
+			);
+		}
+	}
+
+	$self->{ vars }->get_system->pheaderJSON( $self->{ vars } );
+	
+	my $tvars = {
+		'alist'		=> $finded_pcode,
+		'callback'	=> $callback
+	};
+	
+	$template->process( 'autoform_pcode.tt2', $tvars );
+}
+
+sub countries
+# //////////////////////////////////////////////////
+{
+	my ( $self, $number ) = @_;
+	
+	return $self->query( 'sel1', __LINE__, "
+		SELECT Name FROM Countries WHERE ID = ?", $number
+	);
+}
+
+sub visapurpose_assembler
+# //////////////////////////////////////////////////
+{
+	my ( $self, $hash ) = @_;
+
+	my $visa = '';
+
+	for ( 1..17 ) {
+		$visa .= ( $_ > 1 ? '|' : '' ) . ( $hash->{ VisaPurpose } == $_ ? '1' : '0' );
+	};
+
+	$hash->{ VisaPurpose } = $visa;
+
+	return $hash;
+}
+
+sub mezzi_assembler
+# //////////////////////////////////////////////////
+{
+	my ( $self, $hash ) = @_;
+
+	my $mezzi = '';
+	
+	for ( 1..7 ) {
+
+		$mezzi .= ( $_ > 1 ? '|' : '' ) . ( $hash->{ 'Mezzi' . $_ } == 1 ? '1' : '0' );
+		
+		delete $hash->{ 'Mezzi' . $_ };
+	};
+
+	$hash->{ Mezzi } = $mezzi;
+	
+	return $hash;
 }
 
 1;

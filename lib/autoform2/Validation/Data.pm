@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( check_data_from_form check_diff_types check_checklist check_chkbox check_param check_captcha );
+our @EXPORT = qw( check_data_from_form check_diff_types check_checklist check_chkbox check_param check_captcha check_passnum_already_in_pending );
 
 sub check_data_from_form
 # //////////////////////////////////////////////////
@@ -148,6 +148,52 @@ sub check_captcha
 		return if decode_json( $result->{ content } )->{ success };
 	}
 	return 'captha_div' . $self->text_error( 18 );
+}
+
+sub check_passnum_already_in_pending
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+	
+	my $pass_list = [];
+	
+	my $pass_double = undef;
+	
+	my $pass_doubles = {};
+
+	my $app_data = $self->db->query( "
+		SELECT AutoAppData.PassNum, isChild
+		FROM AutoToken
+		JOIN AutoAppointments ON AutoToken.AutoAppID = AutoAppointments.ID
+		JOIN AutoAppData ON AutoAppointments.ID = AutoAppData.AppID
+		WHERE Token = ?", $self->{ token }
+	);
+
+	for ( @$app_data ) {
+	
+		unless ( $_->{ isChild } ) {
+		
+			push( @$pass_list, $_->{ PassNum } );
+			
+			$pass_doubles->{ $_->{ PassNum } } += 1;
+		}
+	}
+	
+	for ( keys %$pass_doubles ) {
+			
+		$pass_double = $_ if $pass_doubles->{ $_ } > 1;
+	}
+	
+	my $pass_line = join( "','", @$pass_list );
+
+	my $pass_already = $self->db->query( "
+		SELECT COUNT(ID) FROM AppData
+		WHERE PassNum IN ('$pass_line') AND Status = 1 AND isChild = 0"
+	);
+
+	$pass_already = undef unless $pass_already;
+
+	return ( $pass_already, $pass_list, $pass_double );
 }
 
 1;
