@@ -3,21 +3,18 @@ use Mojo::Base 'Mojolicious';
 use Mojo::mysql;
 
 use utf8;
+use autoform2::Other::Init;
 
 sub startup
 # //////////////////////////////////////////////////
 {
 	my $self = shift;
 	
-	$self->helper(
-		db => sub {
-			return Mojo::mysql->strict_mode( 'mysql://remoteuser:userremote@127.0.0.1/vcs' )->db;
-		}
-	);
-	
 	my $config = $self->plugin( 'Config' );
 
 	$self->secrets( $config->{ secrets } );
+	
+	start_init( $self );
 
 	my $r = $self->routes;
 

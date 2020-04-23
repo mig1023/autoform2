@@ -4,7 +4,7 @@ use utf8;
 use Exporter;
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( get_names_db_for_save_or_get get_current_table_id check_data_from_db );
+our @EXPORT = qw( get_names_db_for_save_or_get get_current_table_id check_data_from_db get_content_rules get_content_rules_hash_opt );
 
 sub get_names_db_for_save_or_get
 # //////////////////////////////////////////////////
@@ -121,7 +121,7 @@ sub check_data_from_db
 		
 		$where_id = "AppID = " . $table_id->{ 'AutoAppointments' } if $auto_table eq 'AutoAppData';
 		
-		my $data = $$self->db->query( "
+		my $data = $self->db->query( "
 			SELECT $request FROM $auto_table WHERE $where_id"
 		);
 
@@ -139,6 +139,73 @@ sub check_data_from_db
 	}
 	
 	return 0;
+}
+
+sub get_content_rules
+# //////////////////////////////////////////////////
+{
+	my ( $self, $current_page, $full, $need_to_init ) = @_;
+
+	my ( $center ) = $self->get_app_visa_and_center();
+		
+	my $content = $self->get_content_rules_hash_opt();
+
+	my $keys_in_current_page = {};
+	my $new_content = {};
+	
+	my $page_order = 0;
+	
+	for my $page ( sort { $content->{ $a }->[ 0 ]->{ page_ord } <=> $content->{ $b }->[ 0 ]->{ page_ord } } keys %$content ) {
+		
+		my $page_ord = ++$page_order;
+		
+		$new_content->{ $page_ord } = $content->{ $page };
+		
+		if ( $current_page == $page_ord ) {
+
+			for ( 'persons_in_page', 'collect_date', 'param', 'ussr_or_rf_first',
+				'primetime_spb_price', 'primetime_price' ) {
+			
+				$keys_in_current_page->{ $_ } = ( $new_content->{ $page_ord }->[ 0 ]->{ $_ } ? 1 : 0 );
+			}
+		}
+		
+		if ( !$full && $content->{ $page }->[ 0 ]->{ replacer } ) {
+		
+			$new_content->{ $page_ord } = $content->{ $page }->[ 0 ]->{ replacer };
+		}
+		elsif ( !$full ) {
+		
+			delete $new_content->{ $page_ord }->[ 0 ];
+			
+			@{ $new_content->{ $page_ord } } = grep defined, @{ $new_content->{ $page_ord } };
+		}
+		else {
+			$new_content->{ $page_ord }->[ 0 ]->{ page_name } = $page;
+		}
+	}
+
+	$content = ( $need_to_init ? $self->init_add_param( $new_content, $keys_in_current_page ) : $new_content );
+	
+	return $content if !$current_page;
+	
+	return scalar( keys %$content ) if $current_page =~ /^length$/i;
+	
+	return $content->{ $current_page };
+}
+
+sub get_content_rules_hash_opt
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+	
+	my ( $center, $visa_category ) = $self->get_app_visa_and_center();
+		
+	return VCS::Site::autodata_type_d::get_content_rules_hash() if $visa_category eq 'D';
+
+	return VCS::Site::autodata_type_c_spb::get_content_rules_hash() if VCS::Site::autodata::this_is_spb_center( $center );
+
+	return VCS::Site::autodata_type_c::get_content_rules_hash();
 }
 
 1;
