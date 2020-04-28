@@ -5,14 +5,13 @@ use Mojo::Base 'Mojolicious::Controller';
 use Data::Dumper;
 
 use autoform2::Data::AutodataTypeC;
-use autoform2::Other::TokenGeneration;
 
 sub new_token
 # //////////////////////////////////////////////////
 {
 	my $self = shift;
 	
-	my $new_token = token_generation( $self );
+	my $new_token = $self->token__generation();
 	
 	$self->redirect_to( "/t/$new_token" );
 }

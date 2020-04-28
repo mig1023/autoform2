@@ -1,13 +1,13 @@
-package autoform2::Other::TokenGeneration;
+package autoform2::Other::Token;
 
 use utf8;
 use Exporter;
 use Math::Random::Secure qw( irand );
 
 @ISA = qw( Exporter );
-our @EXPORT = qw( token_generation );
+our @EXPORT = qw( generation check );
 
-sub token_generation
+sub generation
 # //////////////////////////////////////////////////
 {
 	my $self = shift;
@@ -38,6 +38,14 @@ sub token_generation
 	$transaction->commit;
 
 	return $token;
+}
+
+sub check
+# //////////////////////////////////////////////////
+{
+	my $self = shift;
+
+	return 'dummy sub';
 }
 
 1;
