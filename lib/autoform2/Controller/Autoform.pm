@@ -4,7 +4,7 @@ use utf8;
 use Mojo::Base 'Mojolicious::Controller';
 use Data::Dumper;
 
-use autoform2::Data::AutodataTypeC;
+
 
 sub new_token
 # //////////////////////////////////////////////////
@@ -35,15 +35,9 @@ sub data
 	
 	my $tmp_data = $self->req->json;
 	
-	my $tmp = undef;
-	if ( $tmp_data->{ direction } eq 'next' ) {
-		$tmp = dummy_data()->{ 2 };
-	}
-	else {
-		$tmp = dummy_data()->{ 1 };
-	}
+	my $tmp_page_num = ( $tmp_data->{ direction } eq 'next' ? 2 : 1);
   
-	$self->render( json => $tmp );
+	$self->render( json => $self->app->model->pages->get_page( $tmp_page_num ) );
 }
 
 1;
