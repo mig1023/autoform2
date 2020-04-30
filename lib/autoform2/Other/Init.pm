@@ -18,8 +18,8 @@ sub start_init
 		}
 	);
 
-	$self->helper( 'token__generation' => \&{ autoform2::Other::Token::generation } );
-	$self->helper( 'token__check' => \&{ autoform2::Other::Token::check } );
+	$self->helper( 'token.generation' => \&{ autoform2::Other::Token::generation } );
+	$self->helper( 'token.check' => \&{ autoform2::Other::Token::check } );
 }
 
 1;

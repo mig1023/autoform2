@@ -11,7 +11,7 @@ sub new_token
 {
 	my $self = shift;
 	
-	my $new_token = $self->token__generation();
+	my $new_token = $self->app->token->generation();
 	
 	$self->redirect_to( "/t/$new_token" );
 }

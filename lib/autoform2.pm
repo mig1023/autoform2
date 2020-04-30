@@ -14,7 +14,14 @@ sub startup
 
 	$self->secrets( $config->{ secrets } );
 	
-	start_init( $self );
+	$self->helper(
+		db => sub {
+			return Mojo::mysql->strict_mode( 'mysql://remoteuser:userremote@127.0.0.1/vcs' )->db;
+		}
+	);
+	
+	$self->helper( 'token.generation' => \&{ autoform2::Other::Token::generation } );
+	$self->helper( 'token.check' => \&{ autoform2::Other::Token::check } );
 
 	my $r = $self->routes;
 
