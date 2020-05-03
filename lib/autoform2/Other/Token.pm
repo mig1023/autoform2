@@ -1,11 +1,9 @@
 package autoform2::Other::Token;
 
+use Mojo::Base 'Mojolicious::Controller';
 use utf8;
 use Exporter;
 use Math::Random::Secure qw( irand );
-
-@ISA = qw( Exporter );
-our @EXPORT = qw( generation check );
 
 sub generation
 # //////////////////////////////////////////////////
@@ -36,7 +34,19 @@ sub generation
 	);
 	
 	$transaction->commit;
+	
+	return $token;
+}
 
+sub get
+# //////////////////////////////////////////////////
+{
+	my ( $self, $c ) = @_;
+
+	my $token = $c->param( "token" ) || undef;
+	
+	$token =~ s/[^0-9a-z\-_]//g;
+	
 	return $token;
 }
 

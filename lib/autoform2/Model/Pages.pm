@@ -2,10 +2,8 @@ package autoform2::Model::Pages;
 
 use utf8;
 use Exporter;
+use Data::Dumper;
 use autoform2::Data::AutodataTypeC;
-
-@ISA = qw( Exporter );
-our @EXPORT = qw( get );
 
 sub get_page
 # //////////////////////////////////////////////////
@@ -14,5 +12,7 @@ sub get_page
 
 	return dummy_data()->{ $pid };
 }
+
+
 
 1;

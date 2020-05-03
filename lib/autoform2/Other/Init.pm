@@ -20,6 +20,7 @@ sub start_init
 	);
 
 	$self->helper( 'token.generation' => \&{ autoform2::Other::Token::generation } );
+	$self->helper( 'token.get' => \&{ autoform2::Other::Token::get } );
 	$self->helper( 'token.check' => \&{ autoform2::Other::Token::check } );
 	$self->helper( 'model.pages.get_page' => \&{ autoform2::Model::Pages::get_page } );
 }
